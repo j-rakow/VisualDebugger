@@ -5,8 +5,7 @@ import re
 
 def find_executable():
     files = os.listdir()
-    executables = [f for f in files if os.path.isfile(f) and
-                   (f.endswith('.out') or f.endswith('.exe') or os.access(f, os.X_OK))]
+    executables = [f for f in files if f.endswith('.out') and os.path.isfile(f)]
     if not executables:
         print("No executable file found.")
         return None
@@ -43,19 +42,19 @@ def get_num_errors_and_contexts(output):
     num_contexts = int(error_nums[1])
     return (num_errors, num_contexts)
 
-
 def run_gdb_analysis():
     executable = find_executable()
     if executable:
         with open("gdb_script.txt", "w") as f:
-            f.write("""
-set pagination off
-break main
-run
-source check_declarations.py
-python check_declarations(gdb.selected_frame().block(), gdb.selected_frame().find_sal().line)
-quit
-""")
+            f.write(
+                "set pagination off\n"
+                "break main\n"
+                "run\n"
+                "source run_gdb.py\n"
+                "python run_gdb()\n"
+                "quit\n"
+            )
+
         print(f"\nRunning GDB on {executable}...\n")
         result = subprocess.run(
             ["gdb", "-q", "-x", "gdb_script.txt", f"./{executable}"],
@@ -64,6 +63,31 @@ quit
         print(result.stdout)
     else:
         print("No executable to debug.")
+
+
+# def run_gdb_analysis():
+#     executable = find_executable()
+#     if executable:
+#         with open("gdb_script.txt", "w") as f:
+                
+                
+#                 f.write("""
+#                 set pagination off
+#                 break main
+#                 run
+#                 source run_gdb.py
+#                 python run_gdb(gdb.selected_frame().block(), gdb.selected_frame().find_sal().line)
+#                 """)
+#                 f.write("""quit""")
+
+#         print(f"\nRunning GDB on {executable}...\n")
+#         result = subprocess.run(
+#             ["gdb", "-q", "-x", "gdb_script.txt", f"./{executable}"],
+#             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+#         )
+#         print(result.stdout)
+#     else:
+#         print("No executable to debug.")
 
 
 
