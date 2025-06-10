@@ -54,6 +54,7 @@ break main
 run
 source check_declarations.py
 python check_declarations(gdb.selected_frame().block(), gdb.selected_frame().find_sal().line)
+b 12
 quit
 """)
         print(f"\nRunning GDB on {executable}...\n")
