@@ -62,50 +62,9 @@ quit
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
         print(result.stdout)
-        #infolocal_vars(result.stdout)
-        line_var_info(result.stdout)
     else:
         print("No executable to debug.")
 
-
-def infolocal_vars(output):
-
-    #Regex captures variables and values from the output of info locals
-    var_regex = re.compile(r"""^([a-zA-Z_][a-zA-Z0-9_]*) = (".*?"|'.*?'|-?\d+)""",re.MULTILINE)
-    #Dictionary
-    var_info = {}
-
-    #Variables 
-    info_string = var_regex.findall(output)
-
-    for var,value in info_string:
-
-        if(value[0] == '-'):
-            if (value[1:len(value) - 1].isnumeric()):
-                value = int(value)
-
-
-        #If the value is a number, cast it to an int
-        elif (value.isnumeric()):
-            value = int(value)
-
-        
-       
-
-        var_info[var] = value
-
-
-    return var_info
-
-def line_var_info(output):
-
-    line_vars = {}
-    line_regex = re.compile(r"""GDB: Current line = (\d+)""")
-    line_num = line_regex.findall(output)[0]
-    
-    
-    line_vars[int(line_num)] = infolocal_vars(output)
-    print(line_vars)
 
 
 # Run both analyses
