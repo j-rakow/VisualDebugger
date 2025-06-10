@@ -42,6 +42,21 @@ def get_num_errors_and_contexts(output):
     num_contexts = int(error_nums[1])
     return (num_errors, num_contexts)
 
+#returns an array with the line numbers of the gdb step/next
+def get_line_numbers(output):
+    line_regex = re.compile(r"This is the gdb line output: [0-9]+ at [0-9+]")
+    number_regex = re.compile(r"[0-9]+")
+    line_arr = []
+
+    line_string = line_regex.findall(output)
+    
+    for line in line_string:
+        line_nums = number_regex.findall(line)
+        line_num = line_nums[0]
+        line_arr.append(line_num)
+    return line_arr
+
+    
 def run_gdb_analysis():
     executable = find_executable()
     if executable:
@@ -60,7 +75,11 @@ def run_gdb_analysis():
             ["gdb", "-q", "-x", "gdb_script.txt", f"./{executable}"],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
-        print(result.stdout)
+        # print(result.stdout)
+        line_arr = get_line_numbers(result.stdout)
+
+        for line in line_arr:
+            print(f"Line: {line}")
     else:
         print("No executable to debug.")
 
@@ -88,8 +107,6 @@ def run_gdb_analysis():
 #         print(result.stdout)
 #     else:
 #         print("No executable to debug.")
-
-
 
 # Run both analyses
 run_valgrind()

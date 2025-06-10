@@ -14,7 +14,6 @@ import gdb
 #                     print(f"    • {sym.print_name} — line unknown ({e})")
 #         block = block.superblock
 
-
 def is_user_function(frame):
         filename = frame
         print("📂 File:", filename)
@@ -25,6 +24,7 @@ def is_user_function(frame):
 
 
 def run_gdb():
+    index = 0
     try:
         while True:
             frame = gdb.selected_frame()
@@ -38,7 +38,8 @@ def run_gdb():
             func = frame.name()
             filename = sal.symtab.filename
             line = sal.line
-
+            print(f"This is the gdb line output: {line} at {index}")
+            index+=1
             print(f"📍 {filename}:{line} — in function '{func}'")
 
             # Optional: print if it's a user-defined function
@@ -51,6 +52,7 @@ def run_gdb():
                 break
 
             gdb.execute("step")
+        return arr
     except gdb.error as e:
         print(f"⚠️  GDB Error: {e}")
     except Exception as e:
