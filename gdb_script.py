@@ -56,6 +56,29 @@ def get_line_numbers(output):
         line_arr.append(line_num)
     return line_arr
 
+def is_EOF(output):
+    line_regex = re.compile(r"Reached end of valid source.")
+
+    line_string = line_regex.findall(output)
+
+    if not line_string:
+        return False
+    else:
+        return True
+
+def is_Error(output):
+    line_regex_1 = re.compile(r"💥 Unexpected error: {e}")
+    line_regex_2 = re.compile(r"⚠️  GDB Error: {e}")
+
+
+    line_string_1 = line_regex_1.findall(output)
+    line_string_2 = line_regex_2.findall(output)
+
+    if not line_string_1 and not line_string_2:
+        return False
+    else:
+        return True
+
     
 def run_gdb_analysis():
     executable = find_executable()
@@ -65,21 +88,64 @@ def run_gdb_analysis():
                 "set pagination off\n"
                 "break main\n"
                 "run\n"
-                "source run_gdb.py\n"
-                "python run_gdb()\n"
+                "source run_gdb_1.py\n"
+                "python run_gdb_1()\n"
                 "quit\n"
             )
 
         print(f"\nRunning GDB on {executable}...\n")
         result = subprocess.run(
-            ["gdb", "-q", "-x", "gdb_script.txt", f"./{executable}"],
+            ["gdb", "-q", "-batch", "-x", "gdb_script.txt", f"./{executable}"],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
-        # print(result.stdout)
-        line_arr = get_line_numbers(result.stdout)
+        output= result.stdout
+        first_line_arr = get_line_numbers(output)
 
-        for line in line_arr:
+        for line in first_line_arr:
             print(f"Line: {line}")
+        #add code here to handle errors
+
+
+        next_line = 0
+        line_arr = first_line_arr
+
+        output2 = ""
+
+        while not is_EOF(output2) and not is_Error(output2):
+            if len(line_arr) == 1:
+                next_line = line_arr[0]
+            else:
+                next_line = line_arr[-2]
+
+            print(f"Next line: {next_line}")
+            
+            breakpoint_str = f"break {next_line}\n"
+
+            with open("gdb_script.txt", "w") as f:
+                f.write(
+                    "set pagination off\n"
+                    + breakpoint_str +
+                    "run\n"
+                    "source run_gdb_2.py\n"
+                    "python run_gdb_2()\n"
+                    "quit\n"
+                )
+            try:
+                result2 = subprocess.run(
+                    ["gdb", "-q", "-batch", "-x", "gdb_script.txt", f"./{executable}"],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                    timeout=10
+                )
+                output2 = result2.stdout
+
+                line_arr = get_line_numbers(output2)
+                # print(output2)
+
+                for line in line_arr:
+                    print(f"Line: {line}")
+            except subprocess.TimeoutExpired:
+                print("❌ GDB timed out while waiting for the second breakpoint.")
+                return  
     else:
         print("No executable to debug.")
 
