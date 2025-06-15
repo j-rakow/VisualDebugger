@@ -28,7 +28,8 @@ int main() {
     int sum = compute_sum(x, y);
     int product = compute_product(x, y);
 
+
     print_result(sum, product);
 
-    return 0;
+    return compute_sum(3,5);
 }

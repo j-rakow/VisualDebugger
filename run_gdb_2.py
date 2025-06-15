@@ -35,6 +35,8 @@ def run_gdb_2():
                 print(f"✅ User-defined function: {filename}")
             elif func == "main":
                 print(f"✅ User-defined function: {filename}")
+
+                
             else:
                 print(f"⛔ Library/system function: {func}")
                 break

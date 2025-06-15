@@ -2,7 +2,7 @@ import subprocess
 import os
 import re
 
-
+#Line 5 on main.c is being skipped. 
 def find_executable():
     files = os.listdir()
     executables = [f for f in files if f.endswith('.out') and os.path.isfile(f)]
@@ -56,7 +56,8 @@ def get_line_numbers(output):
         line_arr.append(line_num)
     return line_arr
 
-def is_EOF(output):
+#Old is_EOF function, delete if unnecessary
+#def is_EOF(output):
     line_regex = re.compile(r"Reached end of valid source.")
 
     line_string = line_regex.findall(output)
@@ -65,6 +66,26 @@ def is_EOF(output):
         return False
     else:
         return True
+
+
+#Use main system call to determine end of code.
+def is_EOF(output):
+    # Check if GDB reports that the program has exited
+    if "Program exited normally." in output:
+        return True
+
+    # Check if GDB has stepped into system-level startup code
+    if "__libc_start_call_main" in output:
+        print("⛔ Detected entry into libc startup code / End of Main.")
+        return True
+
+    # Optional: check if we’ve stepped out of main
+    location_regex = re.compile(r"📍 ([^:]+):([0-9]+) — in function '([^']+)'")
+    matches = location_regex.findall(output)
+
+
+    return False
+
 
 def is_Error(output):
     line_regex_1 = re.compile(r"💥 Unexpected error: {e}")
