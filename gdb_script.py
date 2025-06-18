@@ -127,18 +127,43 @@ def get_num_errors_and_contexts(output):
     return (num_errors, num_contexts)
 
 
-#returns an array with the line numbers of the gdb step/next
+'''
+FUNCTION: get_line_numbers(output)
+INPUT:
+    a string containing GDB output
+
+OUTPUT:
+    a list of line numbers (as strings) extracted from the GDB 
+
+DESCRIPTION:
+This function scans through GDB output to find and extract source line numbers from
+specific debugging messages. It uses a regular expression to find all lines that match
+the pattern "This is the gdb line output: <number> at <number>", then extracts the first
+number (the line number) from each match.
+
+The extracted line numbers are returned as a list of strings.
+'''
+
 def get_line_numbers(output):
+    # Regex to match lines of the form: "This is the gdb line output: <line_num> at <address>"
     line_regex = re.compile(r"This is the gdb line output: [0-9]+ at [0-9+]")
+    
+    # Regex to extract numbers from the string
     number_regex = re.compile(r"[0-9]+")
+
+    #The list we will return (stores line numbers)
     line_arr = []
 
+    # list of strings that match: "This is the gdb line output: <line_num> at <address>"
     line_string = line_regex.findall(output)
     
+    # For each matched string, extract the first number and add it to the return list
     for line in line_string:
-        line_nums = number_regex.findall(line)
-        line_num = line_nums[0]
-        line_arr.append(line_num)
+        line_nums = number_regex.findall(line)  # Should return two numbers: line and address
+        line_num = line_nums[0]                 # Take the first number (line number)
+        line_arr.append(line_num)               #Append the line number to our return list
+
+    # Return the collected line numbers as a list of strings
     return line_arr
 
 def is_EOF(output):
@@ -232,8 +257,8 @@ def run_gdb_analysis():
                 line_arr = get_line_numbers(output2)
                 # print(output2)
 
-                lineArrLen = len(first_line_arr)
-                for i,line in enumerate(first_line_arr):
+                lineArrLen = len(line_arr)
+                for i,line in enumerate(line_arr):
                     if i == lineArrLen -1:
                         roadMap.append("next")
                     else:
